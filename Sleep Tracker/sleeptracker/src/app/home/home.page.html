@@ -46,6 +46,16 @@
           <ion-icon [icon]="statsChartOutline" slot="start"></ion-icon>
           View All Data
         </ion-button>
+
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          color="success"
+          (click)="backupToCloud()"
+          class="ion-margin-top">
+          <ion-icon [icon]="cloudUploadOutline" slot="start"></ion-icon>
+          Backup to Cloud
+        </ion-button>
       </ion-card-content>
     </ion-card>
 

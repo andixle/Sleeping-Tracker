@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonItem, IonLabel, IonList, IonItemSliding, IonItemOptions, IonAlert, AlertController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { SleepService } from '../services/sleep.service';
+import { AwsService } from '../services/aws.service';
 import { SleepData } from '../data/sleep-data';
 import { OvernightSleepData } from '../data/overnight-sleep-data';
 import { StanfordSleepinessData } from '../data/stanford-sleepiness-data';
-import { addOutline, moonOutline, sunnyOutline, statsChartOutline, trashOutline, createOutline } from 'ionicons/icons';
+import { addOutline, moonOutline, sunnyOutline, statsChartOutline, trashOutline, createOutline, cloudUploadOutline } from 'ionicons/icons';
 import { Router } from '@angular/router';
 
 @Component({
@@ -21,10 +22,11 @@ export class HomePage {
   statsChartOutline = statsChartOutline;
   trashOutline = trashOutline;
   createOutline = createOutline;
+  cloudUploadOutline = cloudUploadOutline;
   showDeleteAlert: boolean = false;
   itemToDelete: SleepData | null = null;
 
-  constructor(public sleepService: SleepService, private router: Router, private alertController: AlertController) {
+  constructor(public sleepService: SleepService, private router: Router, private alertController: AlertController, private awsService: AwsService) {
   }
 
   ngOnInit() {
@@ -272,6 +274,30 @@ export class HomePage {
       console.log('Canceling delete');
       this.showDeleteAlert = false;
       this.itemToDelete = null;
+    }
+  }
+
+  async backupToCloud() {
+    try {
+      const result = await this.awsService.backupToCloud();
+      
+      const alert = await this.alertController.create({
+        header: result.success ? 'Backup Successful' : 'Backup Failed',
+        message: result.message,
+        buttons: ['OK']
+      });
+      
+      await alert.present();
+    } catch (error) {
+      console.error('Backup error:', error);
+      
+      const alert = await this.alertController.create({
+        header: 'Backup Error',
+        message: 'An unexpected error occurred during backup.',
+        buttons: ['OK']
+      });
+      
+      await alert.present();
     }
   }
 }
