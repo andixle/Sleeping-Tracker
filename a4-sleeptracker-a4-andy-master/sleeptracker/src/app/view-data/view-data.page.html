@@ -1,0 +1,167 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>View Sleep Data</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Sleep Data</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="ion-padding">
+    <!-- Statistics Overview -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon [icon]="statsChartOutline" class="ion-margin-end"></ion-icon>
+          Sleep Statistics
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <h3>{{ statistics.total }}</h3>
+            <p>Total Entries</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ statistics.overnight }}</h3>
+            <p>Overnight Sleep</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ statistics.sleepiness }}</h3>
+            <p>Sleepiness Logs</p>
+          </div>
+        </div>
+        
+        <div class="stats-grid ion-margin-top">
+          <div class="stat-item">
+            <h3>{{ statistics.averageSleepDuration }}</h3>
+            <p>Avg Sleep Duration</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ statistics.averageSleepinessLevel }}</h3>
+            <p>Avg Sleepiness Level</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Filter and Sort Controls -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon [icon]="timeOutline" class="ion-margin-end"></ion-icon>
+          Filter & Sort
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Filter Segment -->
+        <ion-segment [(ngModel)]="selectedFilter" (ionChange)="onFilterChange($event)">
+          <ion-segment-button value="all">
+            <ion-label>All Data</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="overnight">
+            <ion-label>Overnight</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="sleepiness">
+            <ion-label>Sleepiness</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+
+        <!-- Sort Controls -->
+        <div class="sort-controls ion-margin-top">
+          <ion-label class="ion-margin-bottom">Sort by:</ion-label>
+          <ion-segment [(ngModel)]="selectedSort" (ionChange)="onSortChange($event)">
+            <ion-segment-button value="newest">
+              <ion-label>Newest</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="oldest">
+              <ion-label>Oldest</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Data List -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon [icon]="statsChartOutline" class="ion-margin-end"></ion-icon>
+          Logged Data ({{ filteredAndSortedData.length }})
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+          <ion-refresher-content pullingIcon="crescent" pullingText="Pull to refresh" refreshingSpinner="circles" refreshingText="Refreshing...">
+          </ion-refresher-content>
+        </ion-refresher>
+
+        <ion-list>
+          <ion-item *ngFor="let data of filteredAndSortedData">
+            <ion-icon [icon]="getIconForData(data)" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <h2>
+                {{ getTypeForData(data) }}
+                <ion-badge [color]="getBadgeColor(data)" class="ion-float-right">
+                  {{ getBadgeText(data) }}
+                </ion-badge>
+              </h2>
+              <p>
+                <strong>{{ data.dateString() }}</strong>
+              </p>
+              <p>{{ data.summaryString() }}</p>
+              <p class="timestamp">Logged: {{ data.loggedAt | date:'short' }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredAndSortedData.length === 0" class="empty-state">
+          <ion-icon [icon]="statsChartOutline" size="large" color="medium"></ion-icon>
+          <h3 color="medium">No data found</h3>
+          <p color="medium">
+            <span *ngIf="selectedFilter === 'all'">No sleep data logged yet. Start by logging your first entry!</span>
+            <span *ngIf="selectedFilter === 'overnight'">No overnight sleep data logged yet.</span>
+            <span *ngIf="selectedFilter === 'sleepiness'">No sleepiness data logged yet.</span>
+          </p>
+          <ion-button fill="outline" color="primary" routerLink="/home">
+            <ion-icon [icon]="moonOutline" slot="start"></ion-icon>
+            Log Sleep Data
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <ion-alert
+    [isOpen]="showAlert"
+    header="Sleep Logging"
+    [message]="alertMessage"
+    [buttons]="['OK']"
+    (ionDidDismiss)="dismissAlert()">
+  </ion-alert>
+
+  <ion-alert
+    [isOpen]="showDeleteAlert"
+    header="Delete Entry"
+    message="Are you sure you want to delete this sleep entry? This action cannot be undone."
+    [buttons]="[
+      {
+        text: 'Cancel',
+        role: 'cancel'
+      },
+      {
+        text: 'Delete',
+        role: 'destructive'
+      }
+    ]"
+    (ionDidDismiss)="handleDeleteAlert($event)">
+  </ion-alert>
+</ion-content>
